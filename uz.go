@@ -7,6 +7,9 @@ import (
     "io"
     "os"
     "path/filepath"
+    "code.google.com/p/go.text/encoding"
+    "code.google.com/p/go.text/encoding/japanese"
+    "code.google.com/p/go.text/transform"
 )
 
 func Input(question string) string {
@@ -28,10 +31,25 @@ func UnZip(fn, dist string) error {
             return err
         }
         defer rc.Close()
-        path := filepath.Join(dist, f.Name)
+        var path string
+        _, _, err = transform.String(encoding.UTF8Validator, f.Name)
+        if err != nil {
+            for _, enc := range []encoding.Encoding{japanese.ShiftJIS, japanese.EUCJP, japanese.ISO2022JP} {
+                tmp, _, err := transform.String(enc.NewDecoder(), f.Name)
+                if err != nil {
+                    continue
+                }
+                path = filepath.Join(dist, tmp)
+                break
+            }
+        } else {
+            path = filepath.Join(dist, f.Name)
+        }
+        fmt.Printf("OUTPUT: %s\n", path)
         if f.FileInfo().IsDir() {
             os.MkdirAll(path, f.Mode())
         } else {
+            os.MkdirAll(filepath.Dir(path), f.Mode())
             tmpf, err := os.Create(path)
             if err != nil {
                 return err
