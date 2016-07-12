@@ -47,9 +47,9 @@ func UnZip(fn, dist string) error {
 		}
 		fmt.Printf("OUTPUT: %s\n", path)
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(path, f.Mode())
+			os.MkdirAll(path, 0755)
 		} else {
-			os.MkdirAll(filepath.Dir(path), f.Mode())
+			os.MkdirAll(filepath.Dir(path), 0755)
 			tmpf, err := os.Create(path)
 			if err != nil {
 				return err
